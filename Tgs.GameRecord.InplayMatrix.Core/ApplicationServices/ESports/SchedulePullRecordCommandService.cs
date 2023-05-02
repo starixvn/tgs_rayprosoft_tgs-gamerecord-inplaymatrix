@@ -31,7 +31,7 @@ internal class SchedulePullRecordCommandService : ICommandService<SchedulePullRe
         while (true)
         {
             var gameRecords = await _client
-                .GameRecordAsync(
+                .GameRecordByIMESportsAsync(
                     reportUrl: command.ReportUrl,
                     merchantCode: command.MerchantCode,
                     merchantPrefix: command.MerchantPrefix,
@@ -39,7 +39,8 @@ internal class SchedulePullRecordCommandService : ICommandService<SchedulePullRe
                     endDate: command.EndDate,
                     page: page,
                     cancellationToken: cancellationToken)
-                .ToArrayAsync()
+                .ToArrayAsync(
+                    cancellationToken: cancellationToken)
                 .ConfigureAwait(false)
                 ?? Enumerable.Empty<GameRecordByIMESportsInfo>();
 

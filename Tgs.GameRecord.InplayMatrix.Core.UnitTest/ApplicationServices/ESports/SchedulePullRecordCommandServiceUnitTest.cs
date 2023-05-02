@@ -37,7 +37,7 @@ public class SchedulePullRecordCommandServiceUnitTest
 
         _ = await fakeClient
             .Received(1)
-            .GameRecordAsync(
+            .GameRecordByIMESportsAsync(
                 reportUrl: Arg.Is(command.ReportUrl),
                 merchantCode: Arg.Is(command.MerchantCode),
                 merchantPrefix: Arg.Is(command.MerchantPrefix),

@@ -31,7 +31,7 @@ internal class ManualPullRecordCommandService : ICommandService<ManualPullRecord
         while (true)
         {
             var gameRecords = await _client
-                .GameRecordAsync(
+                .GameRecordByIMESportsAsync(
                     reportUrl: command.ReportUrl,
                     merchantCode: command.MerchantCode,
                     merchantPrefix: command.MerchantPrefix,
