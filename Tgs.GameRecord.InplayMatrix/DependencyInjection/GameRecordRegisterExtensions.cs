@@ -1,5 +1,6 @@
 ﻿using Tgs.GameCommand.Client;
 using Tgs.GameCommand.Common;
+using Tgs.GameInterface.InplayMatrix.Client;
 using Tgs.GameRecord.InplayMatrix.Core;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -10,9 +11,24 @@ public static class GameRecordRegisterExtensions
     {
         using (var scope = app.Services.CreateScope())
         {
+
             var gameRecordInfo = app.Configuration.GetSection("GameRecordInfo").Get<GameRecordInfoOptions>();
             var utensil = scope.ServiceProvider.GetRequiredService<IUtensil>();
             var client = scope.ServiceProvider.GetRequiredService<IGameCommandClient>();
+
+
+            try
+            {
+                var gameInterfaceInplayMatrixClient = scope.ServiceProvider.GetRequiredService<IGameInterfaceInplayMatrixClient>();
+                _ = await gameInterfaceInplayMatrixClient
+                    .CheckingServiceAsync(
+                        Environment.MachineName)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+
+            }
 
             var gameProviderId = await utensil.GetESportsGameProviderIdAsync().ConfigureAwait(false);
             var games = client
