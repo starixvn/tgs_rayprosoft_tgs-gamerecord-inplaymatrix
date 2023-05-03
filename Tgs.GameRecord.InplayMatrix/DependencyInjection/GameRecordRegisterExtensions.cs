@@ -11,11 +11,9 @@ public static class GameRecordRegisterExtensions
     {
         using (var scope = app.Services.CreateScope())
         {
-
             var gameRecordInfo = app.Configuration.GetSection("GameRecordInfo").Get<GameRecordInfoOptions>();
             var utensil = scope.ServiceProvider.GetRequiredService<IUtensil>();
             var client = scope.ServiceProvider.GetRequiredService<IGameCommandClient>();
-
 
             try
             {
@@ -27,7 +25,6 @@ public static class GameRecordRegisterExtensions
             }
             catch
             {
-
             }
 
             var gameProviderId = await utensil.GetESportsGameProviderIdAsync().ConfigureAwait(false);
