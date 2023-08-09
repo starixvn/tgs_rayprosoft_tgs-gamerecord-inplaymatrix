@@ -10,13 +10,13 @@ internal class SchedulePullRecordCommandService : ICommandService<SchedulePullRe
     private readonly IGameInterfaceInplayMatrixClient _client;
     private readonly IGameRecordByESportsUtensil _gameRecordUtensil;
     private readonly ILogger<SchedulePullRecordCommandService> _logger;
-    private readonly ICommandService<ScheduleHandleRecordCommand> _service;
+    private readonly ICommandService<HandleRecordCommand> _service;
 
     public SchedulePullRecordCommandService(
         ILogger<SchedulePullRecordCommandService> logger,
         IGameInterfaceInplayMatrixClient client,
         IGameRecordByESportsUtensil gameRecordUtensil,
-        ICommandService<ScheduleHandleRecordCommand> service)
+        ICommandService<HandleRecordCommand> service)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _gameRecordUtensil = gameRecordUtensil ?? throw new ArgumentNullException(nameof(gameRecordUtensil));

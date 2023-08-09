@@ -15,7 +15,7 @@ public class SchedulePullRecordCommandServiceUnitTest
         var fakeLogger = NullLogger<SchedulePullRecordCommandService>.Instance;
         var fakeClient = Substitute.For<IGameInterfaceInplayMatrixClient>();
         var fakeGameRecordUtensil = Substitute.For<IGameRecordByESportsUtensil>();
-        var fakeService = Substitute.For<ICommandService<ScheduleHandleRecordCommand>>();
+        var fakeService = Substitute.For<ICommandService<HandleRecordCommand>>();
 
         var command = new SchedulePullRecordCommand(
             ReportUrl: new("http://localhost/"),

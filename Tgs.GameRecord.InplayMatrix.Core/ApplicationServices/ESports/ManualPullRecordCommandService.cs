@@ -10,13 +10,13 @@ internal class ManualPullRecordCommandService : ICommandService<ManualPullRecord
     private readonly IGameInterfaceInplayMatrixClient _client;
     private readonly IGameRecordByESportsUtensil _gameRecordUtensil;
     private readonly ILogger<ManualPullRecordCommandService> _logger;
-    private readonly ICommandService<ManualHandleRecordCommand> _service;
+    private readonly ICommandService<HandleRecordCommand> _service;
 
     public ManualPullRecordCommandService(
         ILogger<ManualPullRecordCommandService> logger,
         IGameInterfaceInplayMatrixClient client,
         IGameRecordByESportsUtensil gameRecordUtensil,
-        ICommandService<ManualHandleRecordCommand> service)
+        ICommandService<HandleRecordCommand> service)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _gameRecordUtensil = gameRecordUtensil ?? throw new ArgumentNullException(nameof(gameRecordUtensil));

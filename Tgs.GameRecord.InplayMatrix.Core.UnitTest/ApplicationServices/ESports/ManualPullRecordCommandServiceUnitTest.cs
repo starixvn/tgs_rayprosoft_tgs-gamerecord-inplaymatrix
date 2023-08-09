@@ -15,7 +15,7 @@ public class ManualPullRecordCommandServiceUnitTest
         var fakeLogger = NullLogger<ManualPullRecordCommandService>.Instance;
         var fakeClient = Substitute.For<IGameInterfaceInplayMatrixClient>();
         var fakeGameRecordUtensil = Substitute.For<IGameRecordByESportsUtensil>();
-        var fakeService = Substitute.For<ICommandService<ManualHandleRecordCommand>>();
+        var fakeService = Substitute.For<ICommandService<HandleRecordCommand>>();
 
         var command = new ManualPullRecordCommand(
             ReportUrl: new("http://localhost/"),
