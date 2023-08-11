@@ -7,24 +7,24 @@ using Tgs.ServiceUtility;
 
 namespace Tgs.GameRecord.InplayMatrix.Core.UnitTest.ApplicationServices.ESports;
 
-public class SchedulePullRecordCommandServiceUnitTest
+public class PullRecordCommandServiceUnitTest
 {
     [Fact]
     public async Task Normal_Process()
     {
-        var fakeLogger = NullLogger<SchedulePullRecordCommandService>.Instance;
+        var fakeLogger = NullLogger<PullRecordCommandService>.Instance;
         var fakeClient = Substitute.For<IGameInterfaceInplayMatrixClient>();
         var fakeGameRecordUtensil = Substitute.For<IGameRecordByESportsUtensil>();
         var fakeService = Substitute.For<ICommandService<HandleRecordCommand>>();
 
-        var command = new SchedulePullRecordCommand(
+        var command = new PullRecordCommand(
             ReportUrl: new("http://localhost/"),
             MerchantCode: "merchantCode",
             MerchantPrefix: "merchantPrefix",
             StartDate: DateTimeOffset.UtcNow.AddMinutes(-10),
             EndDate: DateTimeOffset.UtcNow);
 
-        var service = new SchedulePullRecordCommandService(
+        var service = new PullRecordCommandService(
             fakeLogger,
             fakeClient,
             fakeGameRecordUtensil,

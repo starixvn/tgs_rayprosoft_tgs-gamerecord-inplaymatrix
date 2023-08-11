@@ -5,15 +5,15 @@ using Tgs.ServiceUtility;
 
 namespace Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
 
-internal class SchedulePullRecordCommandService : ICommandService<SchedulePullRecordCommand>
+internal class PullRecordCommandService : ICommandService<PullRecordCommand>
 {
     private readonly IGameInterfaceInplayMatrixClient _client;
     private readonly IGameRecordByESportsUtensil _gameRecordUtensil;
-    private readonly ILogger<SchedulePullRecordCommandService> _logger;
+    private readonly ILogger<PullRecordCommandService> _logger;
     private readonly ICommandService<HandleRecordCommand> _service;
 
-    public SchedulePullRecordCommandService(
-        ILogger<SchedulePullRecordCommandService> logger,
+    public PullRecordCommandService(
+        ILogger<PullRecordCommandService> logger,
         IGameInterfaceInplayMatrixClient client,
         IGameRecordByESportsUtensil gameRecordUtensil,
         ICommandService<HandleRecordCommand> service)
@@ -24,7 +24,7 @@ internal class SchedulePullRecordCommandService : ICommandService<SchedulePullRe
         _service = service ?? throw new ArgumentNullException(nameof(service));
     }
 
-    public async ValueTask ExecuteAsync(SchedulePullRecordCommand command, CancellationToken cancellationToken = default)
+    public async ValueTask ExecuteAsync(PullRecordCommand command, CancellationToken cancellationToken = default)
     {
         int page = 1;
 
@@ -75,7 +75,7 @@ internal class SchedulePullRecordCommandService : ICommandService<SchedulePullRe
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "LogOn:{logOn} Message: GameRecord Exception. GameRecord:{gameRecord}", DateTime.Now.ToString("o"), gameRecord);
+                    _logger.LogError(ex, "LogOn:{logOn} Message: game record exception.({gameRecord})", DateTime.Now.ToString("o"), gameRecord);
                 }
             }
         }

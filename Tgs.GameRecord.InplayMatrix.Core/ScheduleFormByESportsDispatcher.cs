@@ -12,22 +12,19 @@ internal class ScheduleFormByESportsDispatcher : IScheduleFormByESportsDispatche
 {
     private readonly IGameRoundsScheduleClient _client;
     private readonly ILogger<ScheduleFormByESportsDispatcher> _logger;
-    private readonly ICommandService<ManualPullRecordCommand> _manualService;
     private readonly IScheduleFormLock _scheduleFormLock;
-    private readonly ICommandService<SchedulePullRecordCommand> _service;
+    private readonly ICommandService<PullRecordCommand> _service;
 
     public ScheduleFormByESportsDispatcher(
         ILogger<ScheduleFormByESportsDispatcher> logger,
         IGameRoundsScheduleClient client,
         IScheduleFormLock scheduleFormLock,
-        ICommandService<SchedulePullRecordCommand> service,
-        ICommandService<ManualPullRecordCommand> manualService)
+        ICommandService<PullRecordCommand> service)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _scheduleFormLock = scheduleFormLock ?? throw new ArgumentNullException(nameof(scheduleFormLock));
         _service = service ?? throw new ArgumentNullException(nameof(service));
-        _manualService = manualService ?? throw new ArgumentNullException(nameof(manualService));
     }
 
     public async ValueTask ExecuteAsync(
@@ -74,36 +71,18 @@ internal class ScheduleFormByESportsDispatcher : IScheduleFormByESportsDispatche
             var parameter = JsonSerializer.Deserialize<InplayMatrixParameter>(scheduleForm.Parameters)
                 ?? throw new Exception($"This game provider ({gameProviderCode}) scheduling form parameter is null. ({id})");
 
-            if (scheduleForm.Source == ScheduleFormSource.Schedule)
-            {
-                var command = new SchedulePullRecordCommand(
-                        ReportUrl: new Uri(parameter.ApiUrl),
-                        MerchantCode: parameter.MerchantCode,
-                        MerchantPrefix: parameter.MerchantPrefix,
-                        StartDate: parameter.StartTime.ToDateTimeOffset(),
-                        EndDate: parameter.EndTime.ToDateTimeOffset());
+            var command = new PullRecordCommand(
+                    ReportUrl: new Uri(parameter.ApiUrl),
+                    MerchantCode: parameter.MerchantCode,
+                    MerchantPrefix: parameter.MerchantPrefix,
+                    StartDate: parameter.StartTime.ToDateTimeOffset(),
+                    EndDate: parameter.EndTime.ToDateTimeOffset());
 
-                await _service
-                     .ExecuteAsync(
-                         command: command,
-                         cancellationToken: cancellationToken)
-                     .ConfigureAwait(false);
-            }
-            else
-            {
-                var command = new ManualPullRecordCommand(
-                        ReportUrl: new Uri(parameter.ApiUrl),
-                        MerchantCode: parameter.MerchantCode,
-                        MerchantPrefix: parameter.MerchantPrefix,
-                        StartDate: parameter.StartTime.ToDateTimeOffset(),
-                        EndDate: parameter.EndTime.ToDateTimeOffset());
-
-                await _manualService
-                     .ExecuteAsync(
-                         command: command,
-                         cancellationToken: cancellationToken)
-                     .ConfigureAwait(false);
-            }
+            await _service
+                 .ExecuteAsync(
+                     command: command,
+                     cancellationToken: cancellationToken)
+                 .ConfigureAwait(false);
 
             await _client
                 .ScheduleFormCompleteAsync(

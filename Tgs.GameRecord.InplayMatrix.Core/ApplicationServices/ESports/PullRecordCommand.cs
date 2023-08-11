@@ -1,6 +1,6 @@
 ﻿namespace Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
 
-public record SchedulePullRecordCommand(
+public record PullRecordCommand(
     Uri ReportUrl,
     string MerchantCode,
     string MerchantPrefix,
