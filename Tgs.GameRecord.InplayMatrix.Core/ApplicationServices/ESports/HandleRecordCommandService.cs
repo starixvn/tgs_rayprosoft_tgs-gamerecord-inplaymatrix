@@ -1,51 +1,59 @@
-﻿using Tgs.GameRounds.Work.Client;
-using Tgs.GameRounds.Work.Common.Protos;
+﻿using Tgs.GameRecord.Handle.Client;
+using Tgs.GameRecord.Handle.Common.Protos;
 using Tgs.ServiceUtility;
 
 namespace Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
 
 internal class HandleRecordCommandService : ICommandService<HandleRecordCommand>
 {
-    private readonly IGameRoundsWorkClient _client;
+    private readonly IGameRecordHandleClient _client;
 
     public HandleRecordCommandService(
-        IGameRoundsWorkClient client)
+        IGameRecordHandleClient client)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
     }
 
     public async ValueTask ExecuteAsync(HandleRecordCommand command, CancellationToken cancellationToken = default)
     {
-        var status = RoundStatus.Open;
-        var clientStatus = RoundClientStatus.Open;
-        if (command.Record.Closed)
+        var status = GameRecordStatus.Open;
+        var clientStatus = GameRecordClientStatus.Open;
+        var externalCreatedOn = command.Record.ExternalCreatedOn.ToDateTimeOffset();
+        var externalClosedOn = (DateTimeOffset?)null;
+        var bet = command.Record.Bet.ToDecimal().GetValueOrDefault(0);
+        var validBet = command.Record.Bet.ToDecimal().GetValueOrDefault(0);
+        var settle = 0.0m;
+        var commission = 0.0m;
+        var turnover = 0.0m;
+        var winLoss = 0.0m;
+
+        if (command.Record.IsSettled)
         {
-            status = RoundStatus.Closed;
-            clientStatus = command.Record.Void ? RoundClientStatus.Void : command.Record.WinLoss <= 0 ? RoundClientStatus.Loss : RoundClientStatus.Win;
+            externalClosedOn = command.Record.ExternalClosedOn.ToDateTimeOffset();
+            status = GameRecordStatus.Closed;
+            settle = command.Record.Settle.ToDecimal().GetValueOrDefault(0);
+            commission = 0;
+            turnover = command.Record.Bet.ToDecimal().GetValueOrDefault(0);
+            winLoss = command.Record.WinLoss.ToDecimal().GetValueOrDefault(0);
+            clientStatus = command.Record.IsCancelled ? GameRecordClientStatus.Void : winLoss <= 0 ? GameRecordClientStatus.Loss : GameRecordClientStatus.Win;
         }
 
         await _client
-        .RoundExchangeRateBiddingAsync(
-            gameProviderId: command.Record.GameProviderId,
-            gameProviderCode: command.Record.GameProviderCode,
+        .MessageAsync(
+            gameProviderCode: "IM_ESP",
             externalRoundId: command.Record.ExternalRoundId,
-            gameId: command.Record.GameId,
             externalGameId: command.Record.ExternalGameId,
             playerCode: command.Record.PlayerCode,
-            walletId: command.Record.WalletId,
-            currencyCode: command.Record.CurrencyCode,
-            brandId: command.Record.BrandId,
-            gameProviderConfigurationId: command.Record.GameProviderConfigurationId,
             status: status,
             clientStatus: clientStatus,
-            externalCreatedOn: command.Record.ExternalCreatedOn,
-            externalClosedOn: command.Record.ExternalClosedOn,
-            bet: command.Record.Bet,
-            validBet: command.Record.ValidBet,
-            settle: command.Record.Settle,
-            commission: command.Record.Commission,
-            turnover: command.Record.Turnover,
-            playerWinLoss: command.Record.WinLoss,
+            externalCreatedOn: externalCreatedOn,
+            externalClosedOn: externalClosedOn,
+            bet: bet,
+            validBet: validBet,
+            settle: settle,
+            commission: commission,
+            turnover: turnover,
+            playerWinLoss: winLoss,
             additionalData: command.Record.AdditionalData,
             cancellationToken: cancellationToken)
         .ConfigureAwait(false);

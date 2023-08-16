@@ -1,5 +1,5 @@
-﻿using Tgs.GameRecord.InplayMatrix.Core.Models;
+﻿using Tgs.GameInterface.InplayMatrix.Protos;
 
 namespace Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
 
-public record HandleRecordCommand(RecordByIMESportsInfo Record);
+public record HandleRecordCommand(GameRecordByIMESportsInfo Record);

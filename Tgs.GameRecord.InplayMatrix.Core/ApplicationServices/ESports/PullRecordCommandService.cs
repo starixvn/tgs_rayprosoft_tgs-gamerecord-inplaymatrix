@@ -8,18 +8,15 @@ namespace Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
 internal class PullRecordCommandService : ICommandService<PullRecordCommand>
 {
     private readonly IGameInterfaceInplayMatrixClient _client;
-    private readonly IGameRecordByESportsUtensil _gameRecordUtensil;
     private readonly ILogger<PullRecordCommandService> _logger;
     private readonly ICommandService<HandleRecordCommand> _service;
 
     public PullRecordCommandService(
         ILogger<PullRecordCommandService> logger,
         IGameInterfaceInplayMatrixClient client,
-        IGameRecordByESportsUtensil gameRecordUtensil,
         ICommandService<HandleRecordCommand> service)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
-        _gameRecordUtensil = gameRecordUtensil ?? throw new ArgumentNullException(nameof(gameRecordUtensil));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _service = service ?? throw new ArgumentNullException(nameof(service));
     }
@@ -59,23 +56,15 @@ internal class PullRecordCommandService : ICommandService<PullRecordCommand>
 
                 try
                 {
-                    var record = await _gameRecordUtensil
-                        .GameRecordConvertRecordAsync(
-                            gameRecord,
-                            cancellationToken)
-                        .ConfigureAwait(false);
-
-                    _logger.LogDebug("LogOn:{logOn} Message: GameRecord. Record:{record}", DateTime.Now.ToString("o"), record);
-
                     await _service
                         .ExecuteAsync(
-                            command: new(record),
-                            cancellationToken: cancellationToken)
+                        command: new(gameRecord),
+                        cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "LogOn:{logOn} Message: game record exception.({gameRecord})", DateTime.Now.ToString("o"), gameRecord);
+                    _logger.LogError(ex, "LogOn:{logOn} Message: An exception occurred in this game record.({gameRecord})", DateTime.Now.ToString("o"), gameRecord);
                 }
             }
         }

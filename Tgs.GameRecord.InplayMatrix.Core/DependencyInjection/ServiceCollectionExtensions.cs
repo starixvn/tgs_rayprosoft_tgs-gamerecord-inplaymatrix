@@ -30,9 +30,7 @@ public static class ServiceCollectionExtensions
             .AddGameCommandClient(gameCommandClientOptions)
             .AddGameRoundsScheduleClient(gameRoundsScheduleClientOptions)
             .AddGameInterfaceInplayMatrixClient(gameInterfaceInplayMatrixClientOptions)
-            .AddGameRoundsWorkClient()
+            .AddGameRecordHandleClient()
             .AddSingleton<IScheduleFormByESportsDispatcher, ScheduleFormByESportsDispatcher>()
-            .AddSingleton<IScheduleFormLock>(sp => ActivatorUtilities.CreateInstance<ScheduleFormLock>(sp, sp.GetRequiredService<RedisConnectionManager>().Database))
-            .AddTransient<IUtensil>(sp => ActivatorUtilities.CreateInstance<UtensilRepository>(sp, TimeSpan.FromHours(1)))
-            .AddSingleton<IGameRecordByESportsUtensil, GameRecordByESportsUtensil>();
+            .AddSingleton<IScheduleFormLock>(sp => ActivatorUtilities.CreateInstance<ScheduleFormLock>(sp, sp.GetRequiredService<RedisConnectionManager>().Database));
 }

@@ -14,7 +14,6 @@ public class PullRecordCommandServiceUnitTest
     {
         var fakeLogger = NullLogger<PullRecordCommandService>.Instance;
         var fakeClient = Substitute.For<IGameInterfaceInplayMatrixClient>();
-        var fakeGameRecordUtensil = Substitute.For<IGameRecordByESportsUtensil>();
         var fakeService = Substitute.For<ICommandService<HandleRecordCommand>>();
 
         var command = new PullRecordCommand(
@@ -27,7 +26,6 @@ public class PullRecordCommandServiceUnitTest
         var service = new PullRecordCommandService(
             fakeLogger,
             fakeClient,
-            fakeGameRecordUtensil,
             fakeService);
 
         await service
