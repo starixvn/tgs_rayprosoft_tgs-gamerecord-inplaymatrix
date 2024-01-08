@@ -9,7 +9,7 @@ internal class GameRecordDispatcher(
     public ValueTask ExecuteAsync(GameRecordCommand command, CancellationToken cancellationToken = default)
         => command.GameProviderCode.ToUpper() switch
         {
-            "AWC_AELOTTO" => imESportsService.ExecuteAsync(
+            "IM_ESP" => imESportsService.ExecuteAsync(
                 command: new(
                     ReportUrl: command.ReportUrl,
                     MerchantCode: command.MerchantCode,
