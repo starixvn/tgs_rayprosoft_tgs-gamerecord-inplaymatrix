@@ -62,7 +62,7 @@ internal class JobInitCommandService(
                     ?? throw new Exception($"This game product setting does not exist.({gameProviderConfiguration})");
 
                 var gameProviderConfigs = await client.GameProviderConfigurationQueryAsync(
-                    gameProviderCode: _gameRecordInfo.GameProviderCode,
+                    gameProviderCode: gameProviderCode,
                     cancellationToken: cancellationToken)
                     .ToArrayAsync(cancellationToken: cancellationToken)
                     .ConfigureAwait(false)
