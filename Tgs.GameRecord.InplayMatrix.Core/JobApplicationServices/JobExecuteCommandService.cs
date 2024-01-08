@@ -13,7 +13,7 @@ internal class JobExecuteCommandService(
     IOptions<GameRecordInfoOptions> options,
     IMessageSender messageSender) : ICommandService<JobExecuteCommand>
 {
-    private readonly double _intervalDays = options.Value.IntervalMinutesMax < options.Value.IntervalMinutes
+    private readonly double _intervalMinutes = options.Value.IntervalMinutesMax < options.Value.IntervalMinutes
         ? options.Value.IntervalMinutesMax
         : options.Value.IntervalMinutesMinimum > options.Value.IntervalMinutes
         ? options.Value.IntervalMinutesMinimum
@@ -21,8 +21,8 @@ internal class JobExecuteCommandService(
 
     public ValueTask ExecuteAsync(JobExecuteCommand command, CancellationToken cancellationToken = default)
     {
-        var endTime = DateTimeOffset.ParseExact(DateTimeOffset.UtcNow.ToString(@"yyyy-MM-dd\THH:mm:00K"), @"yyyy-MM-dd\T00:00:00K", null, styles: System.Globalization.DateTimeStyles.RoundtripKind);
-        var startTime = endTime.AddMinutes(_intervalDays * -1);
+        var endTime = DateTimeOffset.ParseExact(DateTimeOffset.UtcNow.ToString(@"yyyy-MM-dd\THH:mm:00K"), @"yyyy-MM-dd\THH:mm:ssK", null, styles: System.Globalization.DateTimeStyles.RoundtripKind);
+        var startTime = endTime.AddMinutes(_intervalMinutes * -1);
 
         var parameters = new InplayMatrixGameRecordMessage
         {
