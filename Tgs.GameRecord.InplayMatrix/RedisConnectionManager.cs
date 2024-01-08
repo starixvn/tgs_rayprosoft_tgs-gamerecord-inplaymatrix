@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using StackExchange.Redis;
+using Tgs.GameRecord.InplayMatrix.Core;
+using Tgs.GameRecord.InplayMatrix;
 
-namespace Tgs.GameRecord.InplayMatrix.Core;
+namespace Tgs.GameRecord.InplayMatrix;
 
 internal class RedisConnectionManager : IDisposable
 {

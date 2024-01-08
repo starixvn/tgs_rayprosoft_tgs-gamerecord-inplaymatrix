@@ -2,4 +2,4 @@
 
 namespace Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
 
-public record HandleRecordCommand(GameRecordByIMESportsInfo Record);
+public record HandleRecordByIMESportsCommand(GameRecordByIMESportsInfo Record);

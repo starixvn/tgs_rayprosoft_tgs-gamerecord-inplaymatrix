@@ -1,8 +1,8 @@
 ﻿namespace Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
 
-public record PullRecordCommand(
+public record PullRecordByIMESportsCommand(
     Uri ReportUrl,
     string MerchantCode,
     string MerchantPrefix,
-    DateTimeOffset StartDate,
-    DateTimeOffset EndDate);
+    DateTimeOffset StartTime,
+    DateTimeOffset EndTime);

@@ -9,24 +9,24 @@
     }
   },
   "profiles": {
-    "Tgs.GameRecord.EvolutionService": {
+    "http": {
       "commandName": "Project",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "hangfire",
+      "applicationUrl": "http://localhost:5009",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "OTEL_SERVICE_NAME": "Game-Gamerecord-IM(local)",
         "NODE_IP": "otel.rpgp.cc"
-      },
-      "applicationUrl": "https://localhost:7009;http://localhost:5009",
-      "dotnetRunMessages": true
+      }
     },
-    "Docker": {
-      "commandName": "Docker",
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
-      "publishAllPorts": true,
-      "useSSL": true,
+      "launchUrl": "hangfire",
+      "applicationUrl": "https://localhost:7009;http://localhost:5009",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "OTEL_SERVICE_NAME": "Game-Gamerecord-IM(local)",

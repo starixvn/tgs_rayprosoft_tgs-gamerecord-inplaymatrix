@@ -1,17 +1,19 @@
 ﻿using System.Net.Mime;
 using System.Text.Json.Serialization;
+using Hangfire;
+using Hangfire.Redis.StackExchange;
 using Microsoft.AspNetCore.Mvc;
-using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Tgs.GameRecord.InplayMatrix;
+using Tgs.GameRecord.InplayMatrix.Common;
+using Tgs.GameRecord.InplayMatrix.Core;
 using Tgs.GameRecord.InplayMatrix.Messages;
 
-var builder = WebApplication.CreateBuilder(args);
+var filterInstrumentations = new[] { "html", "ico", "png", "jpg" };
 
-builder.Configuration
-    .AddJsonFile("/config/appsettings.json", true)
-    .AddEnvironmentVariables();
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging
     .AddOpenTelemetry(options =>
@@ -28,7 +30,6 @@ builder.Logging
     });
 
 // Add services to the container.
-
 builder.Services
     .AddRouting(options => options.LowercaseUrls = true)
     .AddControllers(options =>
@@ -40,6 +41,7 @@ builder.Services
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -51,7 +53,24 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-builder.Services.AddGameRecordCore(
+// Learn more about configuring Hangfire
+builder.Services.AddHangfire(
+    (sp, config) =>
+    {
+        var configuration = sp.GetRequiredService<IConfiguration>();
+        var connectionString = builder.Configuration.GetConnectionString("redis")!;
+        var gameRecordInfo = builder.Configuration.GetSection("GameRecordInfo").Get<GameRecordInfoOptions>()!;
+        var options = new RedisStorageOptions
+        {
+            Prefix = gameRecordInfo.HangfirePrefix
+        };
+        _ = config
+        .UseRedisStorage(connectionString, options)
+        .WithJobExpirationTimeout(TimeSpan.FromMinutes(30));
+    })
+    .AddHangfireServer();
+
+builder.Services.AddGameRecord(
     (options, sp) =>
     {
         var configuration = sp.GetRequiredService<IConfiguration>();
@@ -70,28 +89,24 @@ builder.Services.AddGameRecordCore(
     (options, sp) =>
     {
         var configuration = sp.GetRequiredService<IConfiguration>();
-        options.BaseUrl = configuration.GetValue<Uri>("GameRecord:GameRoundsScheduleClientBaseUrl")!;
-    },
-    (options, sp) =>
-    {
-        var configuration = sp.GetRequiredService<IConfiguration>();
         options.BaseUrl = configuration.GetValue<Uri>("GameRecord:GameInterfaceClientBaseUrl")!;
     });
 
 builder.Services
     .AddMessageQueue()
     .AddNatsMessageQueue(natsConfig =>
-     {
-         _ = natsConfig
-         .ConfigQueueOptions((options, sp) =>
-         {
-             var configuration = sp.GetRequiredService<IConfiguration>();
-             options.Url = configuration.GetConnectionString("Nats")!;
-         })
-         .AddHandler<ScheduleFormQueuedByESportsMessageHandler>(subject: "gp.gamerecord.scheduleform.im.esp.queued", "gp.gamerecord.scheduleform.im.esp.queued");
-     })
-     .ClearAllExchanges()
-     .AddNatsGlobPatternExchange("*");
+    {
+        _ = natsConfig
+        .ConfigQueueOptions((options, sp) =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            options.Url = configuration.GetConnectionString("Nats")!;
+        })
+        .AddHandler<GameRecordMessageHandler>(InplayMatrixNatsConst.SchedulePublish, InplayMatrixNatsConst.SchedulePublish)
+        .AddHandler<GameRecordMessageHandler>(InplayMatrixNatsConst.ManualPublish, InplayMatrixNatsConst.ManualPublish);
+    })
+    .ClearAllExchanges()
+    .AddNatsGlobPatternExchange("*");
 
 builder.Services
     .AddOpenTelemetry()
@@ -100,7 +115,15 @@ builder.Services
             .AddEnvironmentVariableDetector())
         .AddSource("Tgs.*")
         .AddSource("TGS.*")
-        .AddAspNetCoreInstrumentation()
+        .AddSource("Valhalla.*")
+        .AddAspNetCoreInstrumentation(options => options.Filter =
+            httpContext => !httpContext.Request.Path.HasValue
+            || !httpContext.Request.Path.StartsWithSegments("/swagger")
+            && !httpContext.Request.Path.StartsWithSegments("/healthz")
+            && !httpContext.Request.Path.StartsWithSegments("/profiler/")
+            && !httpContext.Request.Path.StartsWithSegments("/hangfire")
+            && !httpContext.Request.Path.StartsWithSegments("/metrics")
+            && !filterInstrumentations.Any(ext => httpContext.Request.Path.Value.EndsWith($".{ext}")))
         .AddHttpClientInstrumentation()
         .AddGrpcClientInstrumentation()
         .AddGrpcCoreInstrumentation()
@@ -108,20 +131,11 @@ builder.Services
         .AddOtlpExporter())
     .WithMetrics(meterBuiler => meterBuiler
     .SetResourceBuilder(ResourceBuilder.CreateDefault()
-    .AddEnvironmentVariableDetector())
-    .AddRuntimeInstrumentation()
-    .AddAspNetCoreInstrumentation()
-    .AddOtlpExporter())
+        .AddEnvironmentVariableDetector())
+        .AddRuntimeInstrumentation()
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter())
     .Services
-    .Configure<AspNetCoreInstrumentationOptions>(options => options.Filter =
-        httpContext => !httpContext.Request.Path.HasValue
-            || !httpContext.Request.Path.StartsWithSegments("/swagger")
-            && !httpContext.Request.Path.StartsWithSegments("/healthz")
-            && !httpContext.Request.Path.StartsWithSegments("/profiler/")
-            && !httpContext.Request.Path.StartsWithSegments("/hangfire")
-            && !httpContext.Request.Path.StartsWithSegments("/metrics")
-            && !new[] { "html", "ico", "png", "jpg" }.Any(
-                ext => httpContext.Request.Path.Value.EndsWith($".{ext}")))
     .AddInterceptionService()
     .AddServiceUtiltiyInterceptors();
 
@@ -132,12 +146,23 @@ var app = builder.Build();
 _ = app.UseSwagger();
 _ = app.UseSwaggerUI();
 
+app.UseHangfireDashboard(
+    "/hangfire",
+    new DashboardOptions()
+    {
+        Authorization =
+        new[]
+        {
+            new IgnoreHangfireAuthorizationFilter()
+        }
+    });
+
 _ = app.UseAuthorization();
 
 _ = app.MapControllers();
 
 app.MapHealthChecks("/healthz");
 
-_ = app.UseGameRecordRegister();
+_ = app.UseHangfireRegisterAsync();
 
 app.Run();

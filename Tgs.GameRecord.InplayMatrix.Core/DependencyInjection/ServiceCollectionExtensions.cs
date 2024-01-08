@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
+using StackExchange.Redis;
 using Tgs.GameCommand.Client;
 using Tgs.GameInterface.InplayMatrix.Client;
 using Tgs.GameRecord.InplayMatrix.Core;
-using Tgs.GameRounds.Schedule.Client;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -10,27 +10,17 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddGameRecordCore(
         this IServiceCollection services,
-        Action<RedisOptions, IServiceProvider> redisDBconfigure,
-        Action<GameRecordInfoOptions, IServiceProvider> gameRecordInfoOptions,
         Action<GameCommandClientOptions, IServiceProvider> gameCommandClientOptions,
-        Action<GameRoundsScheduleClientOptions, IServiceProvider> gameRoundsScheduleClientOptions,
-        Action<GameInterfaceInplayMatrixClientOptions, IServiceProvider> gameInterfaceInplayMatrixClientOptions)
+        Action<GameInterfaceInplayMatrixClientOptions, IServiceProvider> gameInterfaceInplayMatrixClientOptions,
+        Func<IServiceProvider, IDatabase> redisDatabaseResolver)
         => services
-            .AddOptions<RedisOptions>()
-            .Configure(redisDBconfigure)
-            .Services
-            .AddOptions<GameRecordInfoOptions>()
-            .Configure(gameRecordInfoOptions)
-            .Services
-            .RegisterAllServiceUtilityTypes(
-                Assembly.GetExecutingAssembly(),
-                ServiceLifetime.Transient)
-            .AddMemoryCache()
-            .AddSingleton<RedisConnectionManager>()
-            .AddGameCommandClient(gameCommandClientOptions)
-            .AddGameRoundsScheduleClient(gameRoundsScheduleClientOptions)
-            .AddGameInterfaceInplayMatrixClient(gameInterfaceInplayMatrixClientOptions)
-            .AddGameRecordHandleClient()
-            .AddSingleton<IScheduleFormByESportsDispatcher, ScheduleFormByESportsDispatcher>()
-            .AddSingleton<IScheduleFormLock>(sp => ActivatorUtilities.CreateInstance<ScheduleFormLock>(sp, sp.GetRequiredService<RedisConnectionManager>().Database));
+        .RegisterAllServiceUtilityTypes(
+            Assembly.GetExecutingAssembly(),
+            ServiceLifetime.Transient)
+        .AddGameCommandClient(gameCommandClientOptions)
+        .AddGameInterfaceInplayMatrixClient(gameInterfaceInplayMatrixClientOptions)
+        .AddGameRecordHandleClient()
+        .AddTransient<IHangfireUtensil, HangfireUtensil>()
+        .AddTransient<IHangfireLock>(sp => ActivatorUtilities.CreateInstance<HangfireLock>(sp, redisDatabaseResolver(sp)))
+        .AddSingleton<IGameRecordDispatcher, GameRecordDispatcher>();
 }

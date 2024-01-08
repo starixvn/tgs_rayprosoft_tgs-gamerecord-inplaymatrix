@@ -28,8 +28,8 @@ public class IMESPController : ControllerBase
     /// </remarks>
     [HttpPost]
     public ValueTask ExecuteAsync(
-        [FromServices] ICommandService<PullRecordCommand> service,
-        PullRecordCommand source)
+        [FromServices] ICommandService<PullRecordByIMESportsCommand> service,
+        PullRecordByIMESportsCommand source)
         => service
         .ExecuteAsync(
             command: source,

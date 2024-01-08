@@ -1,4 +1,5 @@
-﻿namespace Tgs.GameRecord.InplayMatrix.Core;
+﻿using Tgs.GameRecord.InplayMatrix.Core;
+namespace Tgs.GameRecord.InplayMatrix;
 
 public record RedisOptions
 {
