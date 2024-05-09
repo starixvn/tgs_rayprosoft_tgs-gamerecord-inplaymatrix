@@ -11,7 +11,8 @@ data:
       "Logging": {
         "LogLevel": {
           "Default": "Warning",
-          "Tgs.GameRecord.InplayMatrix.Messages": "Information"
+          "Tgs.GameRecord.InplayMatrix.Messages": "Information",
+          "Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports.HandleRecordByIMESportsCommandService": "Information"
         }
       },
       "GameRecord": {
