@@ -11,7 +11,8 @@ data:
       "Logging": {
         "LogLevel": {
           "Default": "Warning",
-          "Grpc.Net.Client.Balancer": "Debug",
+          "Grpc.Net.Client.Balancer": "Warning",
+          "Grpc.Net.Client.Balancer.DnsResolver": "Debug",
           "Tgs.GameRecord.InplayMatrix.Messages.ManualMessageHandler": "Information",
           "Tgs.GameRecord.InplayMatrix.Messages.ScheduleMessageHandler": "Warning",
           "Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports.HandleRecordByIMESportsCommandService": "Warning"
