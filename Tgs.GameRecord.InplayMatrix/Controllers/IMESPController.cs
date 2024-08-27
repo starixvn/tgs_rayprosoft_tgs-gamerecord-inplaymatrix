@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
-using Tgs.ServiceUtility;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using Tgs.GameRecord.InplayMatrix.Common;
+using Tgs.GameRecord.InplayMatrix.ViewModels;
+using Valhalla.MessageQueue;
 
 namespace Tgs.GameRecord.InplayMatrix.Controllers;
 
@@ -9,29 +11,48 @@ namespace Tgs.GameRecord.InplayMatrix.Controllers;
 public class IMESPController : ControllerBase
 {
 	/// <summary>
-	/// Executes the asynchronous.
+	/// Games the record manual asynchronous.
 	/// </summary>
-	/// <param name="service">The service.</param>
+	/// <param name="messageSender">The message sender.</param>
 	/// <param name="source">The source.</param>
 	/// <returns></returns>
-	/// <remarks>
-	/// <b>Example</b><br />
-	///
-	///     Post
-	///         {
-	///             "reportUrl":"http://operatorapi-report.staging.imaegisapi.com/",
-	///             "merchantCode":"OfL5H2hKOIP9tHp9ZIoqYeggJtFC39zQ",
-	///             "merchantPrefix":"IM1S3",
-	///             "startTime": "2023-04-27T13:00:00+08:00",
-	///             "endTime": "2023-04-27T14:00:00+08:00"
-	///         }
-	/// </remarks>
-	[HttpPost]
-	public ValueTask ExecuteAsync(
-		[FromServices] ICommandService<PullRecordByIMESportsCommand> service,
-		PullRecordByIMESportsCommand source)
-		=> service
-		.ExecuteAsync(
-			command: source,
+	[HttpPost("manual")]
+	public ValueTask GameRecordManualAsync(
+		[FromServices] IMessageSender messageSender,
+		PullRecordByIMESportsViewModel source)
+		=> messageSender.PublishAsync(
+			subject: InplayMatrixNatsConst.ManualPublish,
+			data: JsonSerializer.SerializeToUtf8Bytes(new InplayMatrixGameRecordMessage
+			{
+				GameProviderCode = "IM_ESP",
+				ReportUrl = source.ReportUrl,
+				MerchantCode = source.MerchantCode,
+				MerchantPrefix = source.MerchantPrefix,
+				StartTime = source.StartTime,
+				EndTime = source.EndTime
+			}),
+			cancellationToken: HttpContext.RequestAborted);
+
+	/// <summary>
+	/// Games the record schedule asynchronous.
+	/// </summary>
+	/// <param name="messageSender">The message sender.</param>
+	/// <param name="source">The source.</param>
+	/// <returns></returns>
+	[HttpPost("schedule")]
+	public ValueTask GameRecordScheduleAsync(
+		[FromServices] IMessageSender messageSender,
+		PullRecordByIMESportsViewModel source)
+		=> messageSender.PublishAsync(
+			subject: InplayMatrixNatsConst.SchedulePublish,
+			data: JsonSerializer.SerializeToUtf8Bytes(new InplayMatrixGameRecordMessage
+			{
+				GameProviderCode = "IM_ESP",
+				ReportUrl = source.ReportUrl,
+				MerchantCode = source.MerchantCode,
+				MerchantPrefix = source.MerchantPrefix,
+				StartTime = source.StartTime,
+				EndTime = source.EndTime
+			}),
 			cancellationToken: HttpContext.RequestAborted);
 }
