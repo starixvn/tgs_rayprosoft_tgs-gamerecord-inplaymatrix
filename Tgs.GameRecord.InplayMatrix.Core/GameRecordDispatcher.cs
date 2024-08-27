@@ -1,15 +1,12 @@
-﻿using Tgs.GameRecord.InplayMatrix.Core.ApplicationServices.ESports;
-using Tgs.ServiceUtility;
-
-namespace Tgs.GameRecord.InplayMatrix.Core;
+﻿namespace Tgs.GameRecord.InplayMatrix.Core;
 
 internal class GameRecordDispatcher(
-	ICommandService<PullRecordByIMESportsCommand> imESportsService) : IGameRecordDispatcher
+	IPullRecordByIMESportsDispatcher iMESportsDispatcher) : IGameRecordDispatcher
 {
 	public ValueTask ExecuteAsync(GameRecordCommand command, CancellationToken cancellationToken = default)
 		=> command.GameProviderCode.ToUpper() switch
 		{
-			"IM_ESP" => imESportsService.ExecuteAsync(
+			"IM_ESP" => iMESportsDispatcher.PushCommandAsync(
 				command: new(
 					ReportUrl: command.ReportUrl,
 					MerchantCode: command.MerchantCode,

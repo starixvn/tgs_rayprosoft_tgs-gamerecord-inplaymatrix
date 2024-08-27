@@ -16,21 +16,31 @@ internal class ScheduleMessageHandler(
 		var message = JsonSerializer.Deserialize<InplayMatrixGameRecordMessage>(json)
 		?? throw new NullReferenceException("The request data resolves to a null value");
 
-		logger.LogInformation("LogOn:{logOn} Subject:{subject} Information Request:{message}",
-			DateTime.Now.ToString("o"),
-			subject,
-			message);
-
-		var command = new GameRecordCommand(
-			GameProviderCode: message.GameProviderCode.ToUpper(),
-			ReportUrl: message.ReportUrl,
-			MerchantCode: message.MerchantCode,
-			MerchantPrefix: message.MerchantPrefix,
-			StartTime: message.StartTime,
-			EndTime: message.EndTime);
+		logger.LogInformation("{logInformation}",
+			JsonSerializer.Serialize(new
+			{
+				LogOn = DateTime.Now.ToString("u"),
+				Subject = subject,
+				Data = new
+				{
+					GameProviderCode = message.GameProviderCode.ToUpper(),
+					message.ReportUrl,
+					message.MerchantCode,
+					message.MerchantPrefix,
+					StartTime = message.StartTime.ToString("u"),
+					EndTime = message.EndTime.ToString("u")
+				},
+				Message = "This message receiving handler."
+			}));
 
 		return dispatcher.ExecuteAsync(
-			command: command,
+			command: new GameRecordCommand(
+				GameProviderCode: message.GameProviderCode.ToUpper(),
+				ReportUrl: message.ReportUrl,
+				MerchantCode: message.MerchantCode,
+				MerchantPrefix: message.MerchantPrefix,
+				StartTime: message.StartTime,
+				EndTime: message.EndTime),
 			cancellationToken: cancellationToken);
 	}
 }
